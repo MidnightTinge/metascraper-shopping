@@ -15,3 +15,28 @@ test("jsonld test", async () => {
   expect(metadata.name).toBe("Calacatta Nuvo");
   expect(metadata.retailer).toBe("Caesarstone US");
 }, 10000);
+
+test('Does not throw for invalid JSON', async () => {
+  const html = `
+<script type="application/ld+json">
+  {invalid
+</script>
+  `;
+
+  return expect(metascraper({ html, url: 'https://example.com/' })).resolves.not.toBeNull();
+})
+
+test('Nullish objects fall-through to other tests', async () => {
+  const html = `
+<meta property="og:title" content="hello, jest"/>
+  `;
+
+  // we're asserting here that the jsonLd check, which will return undefined, falls through to the
+  // og:title meta tag fallback correctly, meaning we're no longer returning `false` and having that
+  // break metascraper upstream.
+  return expect(metascraper({ html, url: 'https://example.com/' })).resolves.toEqual(
+    expect.objectContaining({
+      name: 'hello, jest',
+    })
+  );
+})

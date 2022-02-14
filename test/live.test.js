@@ -86,3 +86,22 @@ test("live test signaturefaucets", async () => {
   const metadata = await metascraper({ html, url });
   expect(metadata.brand).toBe("Signature Faucets");
 }, 10000);
+
+test('alphaleteathletics.com', async () => {
+  const targetUrl = 'https://alphaleteathletics.com/collections/new-mens-kels-1-31/products/mens-monarch-hoodie-black';
+  const { body: html, url } = await got(targetUrl, {
+    headers: {
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_1) AppleWebKit/601.2.4 (KHTML, like Gecko) Version/9.0.1 Safari/601.2.4 facebookexternalhit/1.1 Facebot Twitterbot/1.0",
+    },
+  });
+
+  const metadata = await metascraper({ html, url });
+  expect(metadata).toEqual(
+    expect.objectContaining({
+      name: 'Monarch Hoodie - Black',
+      price: 76,
+      currency: 'USD',
+    })
+  );
+});

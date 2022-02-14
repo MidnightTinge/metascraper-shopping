@@ -4,13 +4,20 @@ const { $jsonld, memoizeOne } = require("@metascraper/helpers");
 const { toPriceFormat, getHostname } = require("./helpers");
 
 const jsonLd = memoizeOne(($) => {
-  const jsonld = JSON.parse($('script[type="application/ld+json"]').html());
-  return jsonld;
+  try {
+    return JSON.parse($('script[type="application/ld+json"]').html());
+  } catch (e) {
+    return null;
+  }
 });
 
 const jsonLdGraph = memoizeOne(($) => {
-  const jsonld = JSON.parse($('script[type="application/ld+json"]').html());
-  return jsonld && jsonld["@graph"];
+  try {
+    const parsed =  JSON.parse($('script[type="application/ld+json"]').html());
+    return parsed && parsed['@graph'];
+  } catch (e) {
+    return null;
+  }
 });
 
 //@graph { @type=Product }
@@ -54,7 +61,7 @@ module.exports = () => {
     brand: [
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLd($);
-        let brand = jsonld && jsonld.brand;
+        let brand = jsonld?.brand;
         if (brand && brand.name) {
           brand = brand.name;
         }
@@ -64,16 +71,15 @@ module.exports = () => {
     name: [
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLd($);
-
-        return jsonld && jsonld.name;
+        return jsonld?.name;
       },
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLdLastBreadcrumb($);
-        return jsonld && jsonld.name;
+        return jsonld?.name;
       },
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLdGraphProduct($);
-        return jsonld && jsonld.name;
+        return jsonld?.name;
       },
       ({ htmlDom: $, url }) => $('[property="og:title"]').attr("content"),
     ],
@@ -110,7 +116,7 @@ module.exports = () => {
         $('[property="og:image:secure_url"]').attr("content"),
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLd($);
-        let image = jsonld && jsonld.image;
+        let image = jsonld?.image;
 
         if (image && image["@type"] === "ImageObject") {
           image = image.image;
@@ -139,7 +145,7 @@ module.exports = () => {
     currency: [
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLdGraphProduct($);
-        return jsonld && jsonld.offers && jsonld.offers.priceCurrency;
+        return jsonld?.offers?.priceCurrency;
       },
       ({ htmlDom: $, url }) =>
         $('[property="og:price:currency"]').attr("content"),
@@ -159,7 +165,7 @@ module.exports = () => {
     sku: [
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLdGraphProduct($);
-        return jsonld && jsonld.sku;
+        return jsonld?.sku;
       },
       ({ htmlDom: $, url }) => $jsonld("sku")($, url),
       ({ htmlDom: $, url }) => $jsonld("offers.sku")($, url),
@@ -175,7 +181,7 @@ module.exports = () => {
     availability: [
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLdGraphProduct($);
-        return jsonld && jsonld.offers && jsonld.offers.availability;
+        return jsonld?.offers?.availability;
       },
       ({ htmlDom: $, url }) =>
         $('[property="og:availability"]').attr("content"),
@@ -186,7 +192,7 @@ module.exports = () => {
     price: [
       ({ htmlDom: $, url }) => {
         let jsonld = jsonLdGraphProduct($);
-        return jsonld && jsonld.offers && toPriceFormat(jsonld.offers.price);
+        return jsonld?.offers && toPriceFormat(jsonld.offers.price);
       },
       ({ htmlDom: $, url }) =>
         toPriceFormat($('[property="og:price:amount"]').attr("content")),
