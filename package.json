@@ -22,6 +22,10 @@
     "availability",
     "asin"
   ],
+  "files": [
+    "index.js",
+    "helpers.js"
+  ],
   "pre-commit": [
     "test"
   ],
